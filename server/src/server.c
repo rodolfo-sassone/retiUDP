@@ -25,6 +25,7 @@
 #include "protocol.h"
 
 #define TRUE 1
+#define NAME_DIM 512
 
 #define NO_ERROR 0
 void clearwinsock() {
@@ -44,6 +45,8 @@ void division(message* msg);
 
 int main(int argc, char *argv[]) {
 
+	puts("Avviato");
+
 #if defined WIN32
 	// Initialize Winsock
 	WSADATA wsa_data;
@@ -53,7 +56,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 #endif
-	char hostname[512] = {"localhost"};		//TODO string's dimension
+	char hostname[NAME_DIM] = {"localhost"};
 	int port = 60000;
 
 	if(argc == 2)
@@ -103,7 +106,6 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
-	//Assegnazione dell'indirizzo alla socket
 	struct sockaddr_in sad;
 	memset(&sad, 0, sizeof(sad));
 	sad.sin_family=AF_INET;
@@ -131,7 +133,6 @@ int main(int argc, char *argv[]) {
 
 		msg.num1 = ntohl(msg.num1);
 		msg.num2 = ntohl(msg.num2);
-		msg.result = ntohl(msg.result);
 
 		struct hostent* c = gethostbyaddr((char*) &cad.sin_addr, 4, AF_INET);
 		if(c == NULL)
@@ -144,7 +145,7 @@ int main(int argc, char *argv[]) {
 		char* serverName = c->h_name;
 		struct in_addr* serverAddr = (struct in_addr*) c->h_addr;
 
-		printf("Richiesta operazione \"%c %d %d\" dal client %s, ip %s", msg.operator, msg.num1, msg.num2, serverName, inet_ntoa(*serverAddr));
+		printf("Richiesta operazione \"%c %d %d\" dal client %s, ip %s\n", msg.operator, msg.num1, msg.num2, serverName, inet_ntoa(*serverAddr));
 
 		switch (msg.operator)
 		{
@@ -167,7 +168,6 @@ int main(int argc, char *argv[]) {
 
 		msg.num1 = htonl(msg.num1);
 		msg.num2 = htonl(msg.num2);
-		msg.result = htonl(msg.result);
 
 		int sended = sendto(my_socket, (char*) &msg, sizeof(msg), 0, (struct sockaddr*) &cad, sizeof(cad));
 		if (sended != sizeof(msg))
@@ -184,22 +184,26 @@ int main(int argc, char *argv[]) {
 
 void add(message* msg)
 {
-	msg->result = msg->num1 + msg->num2;
+	int result = msg->num1 + msg->num2;
+	sprintf(msg->result, "%d", result);
 }
 
 void mult(message* msg)
 {
-	msg->result = msg->num1 * msg->num2;
+	int result =  msg->num1 * msg->num2;
+	sprintf(msg->result, "%d", result);
 }
 
 void sub(message* msg)
 {
-	msg->result = msg->num1 - msg->num2;
+	int result =  msg->num1 - msg->num2;
+	sprintf(msg->result, "%d", result);
 }
 
 void division(message* msg)
 {
-	msg->result = msg->num1 / msg->num2;
+	float result =  (float) msg->num1/msg->num2;
+	sprintf(msg->result, "%f", result);
 }
 
 

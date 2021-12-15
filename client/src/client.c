@@ -22,9 +22,12 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 #include "protocol.h"
 
 #define MAX_INPUT 512
+#define NAME_DIM 512
 
 #define NO_ERROR 0
 void clearwinsock() {
@@ -52,7 +55,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 #endif
-	char hostname[512] = {"localhost"};		//TODO string's dimension
+	char hostname[NAME_DIM] = {"localhost"};
 	int port = 60000;
 
 	if(argc == 2)
@@ -126,17 +129,16 @@ int main(int argc, char *argv[])
 		msg.operator = *token[0];
 		msg.num1 = 0;
 		msg.num2 = 0;
-		msg.result = 0;
+		memset(msg.result,0,sizeof(msg.result));
 
 		if(status)
 		{
 			msg.num1 = htonl(atoi(token[1]));
 			msg.num2 = htonl(atoi(token[2]));
-			msg.result = htonl(msg.result);
 
 			int sended = sendto(my_socket, (char*) &msg, sizeof(msg), 0, (struct sockaddr*) &sad, sizeof(sad));
 			if(sended != sizeof(msg))
-			{	//TODO vedi un po' se chiudere tutto o no
+			{
 				errorHandler("Messaggio non inviato correttamente");
 				closesocket(my_socket);
 				clearwinsock();
@@ -157,7 +159,6 @@ int main(int argc, char *argv[])
 
 			msg.num1 = ntohl(msg.num1);
 			msg.num2 = ntohl(msg.num2);
-			msg.result = ntohl(msg.result);
 
 			memset(h,0,sizeof(*h));
 			h = gethostbyaddr((char*) &fromAddr.sin_addr, 4, AF_INET);
@@ -171,8 +172,11 @@ int main(int argc, char *argv[])
 			char* serverName = h->h_name;
 			struct in_addr* serverAddr = (struct in_addr*) h->h_addr;
 
-			printf("Ricevuto risultato dal server %s, ip %s :\n %d %c %d = %f", serverName, inet_ntoa(*serverAddr), msg.num1, msg.operator, msg.num2, msg.result);
-
+			printf("Ricevuto risultato dal server %s, ip %s :\n %d %c %d = ", serverName, inet_ntoa(*serverAddr), msg.num1, msg.operator, msg.num2);
+			if (msg.operator == '/')
+				printf("%.2f\n",  atof(msg.result));
+			else
+				printf("%d\n", atoi(msg.result));
 		}
 
 	}

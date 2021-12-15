@@ -8,12 +8,14 @@
 #ifndef PROTOCOL_H_
 #define PROTOCOL_H_
 
+#define RESULT_SIZE 100
+
 typedef struct
 {
 	char operator;
 	int num1;
 	int num2;
-	float result;
+	char result[RESULT_SIZE];
 }message;
 
 #endif /* PROTOCOL_H_ */
